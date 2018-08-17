@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Configurador Integração SEI</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://jqueryvalidation.org/files/demo/site-demos.css">
+
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+            integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+            crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.16.0/jquery.validate.min.js"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
+
+    <style>
+        ul {
+            -webkit-column-count: 3;
+            -moz-column-count: 3;
+            column-count: 3;
+        }
+
+        .row {
+            background-color: #024250;
+            height: 80px;
+        }
+
+        .row img {
+            width: 200px;
+            padding: 20px;
+        }
+    </style>
+
+
+</head>
+
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <img alt="Configurador" title="Configurador" src="logo.png">
+    </div>
+    <h1>Configurador de Integração SEI</h1>
+    <fieldset>
+        <legend>Parâmentros</legend>
+
+        <form id="formParamsAcesso" class="form-horizontal">
+            <input type="hidden" name="action" value="getMethods">
+
+            <div class="form-group">
+                <label for="versao" class="col-sm-2 control-label">Sistema</label>
+                <div class="input-group col-sm-2">
+                    <select class="form-control" id="versao"
+                            name="versao"
+                            placeholder="Nome do sistema externo definido no SEI"
+                            data-msg="Campo obrigatório" required>
+                        <option label="Selecione" value="">Selecione</option>
+                        <option label="2.6.0" selected="selected" value="2.6.0">2.6.0</option>
+                        <select/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="sistema" class="col-sm-2 control-label">Sistema</label>
+                <div class="input-group col-sm-5">
+                    <input type="text" class="form-control" id="sistema"
+                           name="sistema"
+                           placeholder="Nome do sistema externo definido no SEI"
+                           data-msg="Campo obrigatório" required>
+                    <span class="input-group-addon" data-toggle="tooltip" data-placement="right"
+                          title="Defina o nome dado ao no SEI">?</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="agrupador" class="col-sm-2 control-label">Identificação</label>
+                <div class="input-group col-sm-5">
+                    <input type="text" class="form-control" id="agrupador"
+                           name="agrupador"
+                           placeholder="Nome de identificação definido no SEI"
+                           data-msg="Campo obrigatório" required>
+                    <span class="input-group-addon" data-toggle="tooltip" data-placement="right"
+                          title="Defina o nome dado ao identificador do Serviço no SEI">?</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="agrupador" class="col-sm-2 control-label">Qtd. Doc. Geração Processo</label>
+                <div class="input-group col-sm-5">
+                    <input type="text" class="form-control" id="num_max_docs"
+                           name="num_max_docs"
+                           placeholder="Nr máximo de documentos a serem enviados"
+                           data-msg="Campo obrigatório" required>
+                    <span class="input-group-addon" data-toggle="tooltip" data-placement="right"
+                          title="Verifique no menu Infra->Parâmetros do sei para saber o valor configurado">?</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="wsdl" class="col-sm-2 control-label">Identificação</label>
+                <div class="input-group col-sm-5">
+                    <input type="text" class="required form-control" id="wsdl"
+                           name="wsdl"
+                           value="http://[dominio]/sei/controlador_ws.php?servico=sei"
+                           placeholder="Url do serviço do SEI"
+                           data-msg="Campo obrigatório" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button type="button" id="btnGetMethods" class="btn btn-primary">Obter Operações</button>
+                </div>
+            </div>
+        </form>
+    </fieldset>
+    <div id="divOperations" class="hide">
+        <fieldset>
+            <legend>Operações Disponíveis</legend>
+            <form id="formMethods" action="Configurador.php" method="post" class="form-horizontal">
+                <input type="hidden" name="action" value="saveMethods">
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Selecione as operações configuradas no SEI</label>
+                    <div class="col-sm-10">
+                        <ul id="listOfMethods" style="list-style: none;"></ul>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <button type="button" id="btnTestarConfigs" class="btn btn-primary">Testar Configurações
+                        </button>
+                        <button type="submit" id="btnDownloadConfigs" class="btn btn-success hide">Gerar Configurações
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </fieldset>
+    </div>
+</div>
+
+
+<div class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">&nbsp;</h4>
+            </div>
+            <div class="modal-body" id="divModalResult" style="overflow: auto;max-height: 200px;"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Fechar</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+<script>
+    var Configurador = {
+        init: function () {
+            Configurador
+                .handleValidadeDataButton()
+                .handleTestConfigsButton()
+            ;
+        },
+
+        handleValidadeDataButton: function () {
+
+            var form = $('form#formParamsAcesso');
+
+            $('#btnGetMethods').on('click', function () {
+                $('#btnDownloadConfigs,#divOperations').addClass('hide');
+                $('#listOfMethods').empty();
+                form.validate();
+                if (form.valid()) {
+                    $.ajax({
+                        'url': 'Configurador.php',
+                        'type': 'POST',
+                        'data': form.serialize(),
+                        'dataType': 'json',
+                        'success': function (result) {
+                            if (result.error) {
+                                $('#divModalResult').html(result.msg);
+                                $('.modal').modal('show');
+                            } else {
+                                for (fName in result.dados) {
+                                    var btnTest = '';
+                                    if (/^listar/.test(fName)) {
+                                        if (fName != 'listarUsuarios' && fName != 'listarExtensoesPermitidas') {
+                                            btnTest = ' <a href="javascript:void();" class="testOperationList" data-fname="' + fName + '">Testar</a>';
+                                        }
+                                    }
+                                    var checked = '';
+                                    if (btnTest != '') {
+                                        checked = 'checked="checked"';
+                                    }
+
+                                    $('#listOfMethods').append(
+                                        '<li><div><span><input ' + checked +
+                                        ' type="checkbox" name="operations[]" value="' + fName +
+                                        '"/></span> ' + fName + btnTest + '</li></div>'
+                                    );
+                                }
+                                $('#divOperations').removeClass('hide');
+                                Configurador.handleClickTestList();
+                            }
+                        },
+                        'error': function (jqXHR, textStatus, errorThrown) {
+                            console.log('jqXHR: ', jqXHR);
+                            console.log('textStatus: ', textStatus);
+                            console.log('errorThrown: ', errorThrown);
+                        }
+                    });
+                }
+            });
+            return Configurador;
+        },
+
+        handleTestConfigsButton: function () {
+            $('#btnTestarConfigs').on('click', function () {
+                $.ajax({
+                    'url': 'Configurador.php',
+                    'type': 'POST',
+                    'data': {
+                        'action': 'listarUnidades',
+                        'testeConfig': '1',
+                    },
+                    'dataType': 'json',
+                    'success': function (result) {
+
+                        $('#divModalResult').html(result.msg);
+                        $('.modal').modal('show');
+
+                        if (!result.error) {
+                            $('#btnDownloadConfigs').removeClass('hide');
+                        } else {
+                            $('#divOperations').addClass('hide');
+                        }
+
+                    },
+                    'error': function (jqXHR, textStatus, errorThrown) {
+                        console.log('jqXHR: ', jqXHR);
+                        console.log('textStatus: ', textStatus);
+                        console.log('errorThrown: ', errorThrown);
+                    }
+                });
+            });
+
+            return Configurador;
+        },
+
+        handleClickTestList: function () {
+            $('.testOperationList').on('click', function () {
+                $.ajax({
+                    'url': 'Configurador.php',
+                    'type': 'POST',
+                    'data': {
+                        'action': $(this).data('fname'),
+                    },
+                    'dataType': 'text',
+                    'success': function (result) {
+                        $('#divModalResult').html(result);
+                        $('.modal').modal('show');
+                    },
+                    'error': function (jqXHR, textStatus, errorThrown) {
+                        console.log('jqXHR: ', jqXHR);
+                        console.log('textStatus: ', textStatus);
+                        console.log('errorThrown: ', errorThrown);
+                    }
+                });
+            });
+        }
+    };
+
+    $(Configurador.init);
+
+</script>
+</body>
+</html>

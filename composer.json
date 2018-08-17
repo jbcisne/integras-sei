@@ -1,0 +1,25 @@
+{
+    "name": "jbcisne/integras-sei",
+    "description": "Integração com o SEI",
+    "type": "library",
+    "config": { "secure-http": false },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Juliano Buzanello",
+            "email": "jbcisne@gmail.com"
+        }
+    ],
+    "require": {
+        "sunra/php-simple-html-dom-parser": "1.5.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "3.7.38"
+    },
+    "autoload": {
+        "psr-4": {
+            "Jb\\Integras\\": "src/Jb/Integras"
+        }
+    }
+
+}

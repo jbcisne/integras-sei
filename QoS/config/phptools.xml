@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="phptools" basedir=".">
+
+    <dirname property="phptools.basedir" file="${ant.file.phptools}" />
+
+    <target name="phptests" depends="phptests-parallel, phptests-serial" description="entry point for PHP tests" />
+
+
+    <target name="tools-init" unless="phptools.properties">
+        <property name="phptools.file" value="php-build-tools.properties" />
+        <property name="phptools.properties" location="${phptools.basedir}/${phptools.file}" />
+        <property file="${phptools.properties}" />
+        <echo message="using php tools properties from ${phptools.properties}" level="verbose" />
+        <tstamp>
+            <format property="phptools.properties.time" pattern="HH:mm:ss dd/MM/yyyy" />
+        </tstamp>
+        <property name="phptools.properties.filter" location="${phptools.properties.tmp}-${phptools.properties.time}" />
+        <echoproperties destfile="${phptools.properties.filter}" prefix="phptools" />
+        <echo message="Expanded properties put into ${phptools.properties.filter}" level="verbose"/>
+    </target>
+
+    <target name="phptests-serial" depends="tools-init, lint" unless="${phptools.parallel}" description="Run PHP tools in serial (after lint)">
+        <echo message="Running PHP tools in serial mode" level="verbose"/>
+        <antcall target="phptools.phpunit"/>
+        <antcall target="phptools.phpmd-ci" />
+        <antcall target="phptools.pdepend" />
+        <antcall target="phptools.phpcpd" />
+        <antcall target="phptools.phpcb" />
+        <antcall target="phptools.phpcs-ci" />
+        <antcall target="phptools.phploc" />
+        <echo message="tools complete, generating documentation" level="verbose"/>
+        <antcall target="phptools.phpdox" />
+    </target>
+
+    <target name="phptests-parallel" depends="tools-init, lint" if="${phptools.parallel}" description="Run PHP tools in parallel (after lint)">
+        <echo message="Running PHP tools in parallel mode" level="verbose"/>
+        <parallel threadCount="${phptools.threadcount}">
+            <antcall target="phptools.phpunit"/>
+<!--             <antcall target="phptools.phpmd-ci" />
+            <antcall target="phptools.pdepend" />
+            <antcall target="phptools.phpcpd" />
+            <antcall target="phptools.phpcb" />
+            <antcall target="phptools.phpcs-ci" />
+            <antcall target="phptools.phploc" /> -->
+        </parallel>
+        <echo message="tools complete, generating documentation" level="verbose"/>
+        <antcall target="phptools.phpdox" />
+    </target>
+
+    <target name="phpunit.exists" unless="phptools.phpunit.run" description="check if phpunit exists">
+        <available property="phptools.phpunit.run" file="${phptools.phpunit.phar}" />
+        <available property="phptools.phpunit.bootstrap.nocopy" file="${phptools.phpunit.bootstrap}" />
+        <available property="phptools.phpunit.config.nocopy" file="${phptools.phpunit.config}" />
+    </target>
+
+    <target name="phpunit.bootstrap.copy" if="phptools.phpunit.run" unless="phptools.phpunit.bootstrap.nocopy"
+        description="Copy a phpunit config file with sensible defaults if none exists">
+        <echo message="Copying  ${phptools.phpunit.dist.bootstrap} to ${phptools.phpunit.bootstrap}" level="verbose" />
+        <copy file="${phptools.phpunit.dist.bootstrap}" tofile="${phptools.phpunit.bootstrap}" overwrite="false" filtering="true">
+            <filterset filtersfile="${phptools.properties.filter}"/>
+        </copy>
+    </target>
+
+    <target name="phpunit.config.copy" if="phptools.phpunit.run" unless="phptools.phpunit.config.nocopy" description="Copy a phpunit config file with sensible defaults if none exists">
+        <echo message="Copying ${phptools.phpunit.dist.config} to ${phptools.phpunit.config}" level="verbose" />
+        <copy file="${phptools.phpunit.dist.config}" tofile="${phptools.phpunit.config}" overwrite="false" filtering="true">
+            <filterset filtersfile="${phptools.properties.filter}"/>
+        </copy>
+    </target>
+
+    <target name="phpunit" depends="tools-init, phpunit.exists, phpunit.bootstrap.copy, phpunit.config.copy" if="${phptools.phpunit.run}" description="Run unit tests with PHPUnit">
+        <echo message="Running PHPUnit tests" level="${phptools.phpunit.echolevel}" />
+        <exec dir="${phptools.builddir}" executable="${phptools.phpunit.phar}" failonerror="${phptools.phpunit.failonerror}">
+            <arg value="--configuration" />
+            <arg value="${phptools.phpunit.config}" />
+            <arg path="${phptools.phpunit.testdir}" />
+        </exec>
+        <echo message="PHPUnit complete" level="${phptools.phpunit.echolevel}" />
+    </target>
+
+    <!-- Generate API documentation -->
+    <target name="phpdox.exists" unless="phptools.phpdox.run" description="Test that the phpdox phar is available">
+        <available property="phptools.phpdox.run" file="${phptools.phpdox.phar}" />
+        <available property="phpdox.config.npcopy" file="${phptools.phpdox.config}" />
+    </target>
+
+    <target name="phpdox.copy" if="phptools.phpdox.run" unless="phptools.phpdox.config.nocopy" description="Copy a phpDox config file with sensible defaults if none exists">
+        <echo message="No existing phpDox config found, copying ${phptools.phpdox.dist} to ${phptools.phpdox.config}" level="${phptools.phpdox.echolevel}" />
+        <copy file="${phptools.phpdox.dist}" tofile="${phptools.phpdox.config}" overwrite="false" filtering="true">
+            <filterset filtersfile="${phptools.properties.filter}"/>
+        </copy>
+    </target>
+
+    <target name="phpdox" depends="tools-init, phpdox.exists, phpdox.copy" if="${phptools.phpdox.run}" description="Generate API documentation using phpDox">
+        <echo message="Generating phpdox in ${phptools.phpdox.output}" level="${phptools.phpdox.echolevel}" />
+        <exec dir="${phptools.builddir}" executable="${phptools.phpdox.phar}" failonerror="${phptools.phpdox.failonerror}">
+            <arg value="--file"/>
+            <arg value="${phptools.phpdox.config}"/>
+        </exec>
+        <echo message="documentation generation complete" level="${phptools.phpdox.echolevel}" />
+    </target>
+
+    <target name="pdepend.exists" unless="phptools.pdepend.run">
+        <available property="phptools.pdepend.run" file="${phptools.pdepend.phar}" />
+    </target>
+
+    <target name="pdepend" depends="tools-init, pdepend.exists" if="${phptools.pdepend.run}" description="Calculate software metrics using PHP_Depend">
+        <echo message="Calculating software metrics using PHP_Depend" level="${phptools.pdepend.echolevel}"/>
+        <exec dir="${phptools.builddir}" executable="${phptools.pdepend.phar}" failonerror="${phptools.pdepend.failonerror}">
+            <arg value="--jdepend-xml=${phptools.pdepend.xml}" />
+            <arg value="--jdepend-chart=${phptools.pdepend.chart}" />
+            <arg value="--overview-pyramid=${phptools.pdepend.overview-pyramid}" />
+            <arg path="${phptools.pdepend.srcdir}" />
+        </exec>
+        <echo message="PHP_Depend complete" level="${phptools.pdepend.echolevel}" />
+    </target>
+
+    <!-- PHP Copy paste detector tests -->
+    <target name="phpcpd.exists" unless="phptools.phpcpd.run">
+        <available property="phptools.phpcpd.run" file="${phptools.phpcpd.phar}" />
+    </target>
+
+    <target name="phpcpd" depends="tools-init, phpcpd.exists" if="${phptools.phpcpd.run}" description="Find duplicate code using PHPCPD">
+        <echo message="Find duplicate code using PHPCPD: (${phptools.phpcpd.phar})" level="${phptools.phpcpd.echolevel}" />
+        <exec dir="${phptools.builddir}" executable="${phptools.phpcpd.phar}" failonerror="${phptools.phpcpd.failonerror}">
+            <arg value="--log-pmd" />
+            <arg value="${phptools.phpcpd.log}" />
+            <arg path="${phptools.phpcpd.srcdir}" />
+        </exec>
+        <echo message="PHP Copy-Paste Detection complete" level="${phptools.phpcpd.echolevel}" />
+    </target>
+
+    <!-- Setup PHP_CodeBrowser (https://github.com/Mayflower/PHP_CodeBrowser) -->
+    <target name="phpcb.exists">
+        <available property="phptools.phpcb.run" file="${phptools.phpcb.phar}" />
+    </target>
+
+    <target name="phpcb" depends="tools-init, phpcb.exists" if="${phptools.phpcb.run}" description="Aggregate tool output with PHP_CodeBrowser">
+        <echo message="Beginning PHP_CodeBrowser aggregation" level="${phptools.phpcb.echolevel}" />
+        <exec dir="${phptools.builddir}" executable="${phptools.phpcb.phar}" failonerror="${phptools.phpcb.failonerror}">
+            <arg value="--log" />
+            <arg path="${phptools.phpcb.logdir}" />
+            <arg value="--output" />
+            <arg path="${phptools.phpcb.output}" />
+            <arg value="--source" />
+            <arg path="${phptools.phpcb.srcdir}" />
+        </exec>
+        <echo message="PHP_CodeBrowser aggregation complete, logged to ${phptools.phpcb.logdir}" level="${phptools.phpcb.echolevel}" />
+    </target>
+
+    <target name="lint">
+        <echo message="Beginning lint tests" level="${phptools.lint.echolevel}"/>
+        <apply executable="php" failonerror="${phptools.lint.failonerror}">
+            <arg value="-l" />
+            <fileset dir="${phptools.lint.srcdir}">
+                <include name="**/*.php" />
+            </fileset>
+        </apply>
+        <echo message="Lint complete" level="${phptools.lint.echolevel}"/>
+    </target>
+
+    <target name="phploc.exists" unless="phptools.phploc.run">
+        <available property="phptools.phploc.run" file="${phptools.phploc.phar}"/>
+    </target>
+
+    <target name="phploc" depends="tools-init, phploc.exists" if="${phptools.phploc.run}" description="Measure project size using PHPLOC">
+        <echo message="Running PHPLOC" level="${phptools.phploc.echolevel}"/>
+        <exec dir="${phptools.builddir}" executable="${phptools.phploc.phar}" failonerror="${phptools.phploc.failonerror}">
+            <arg value="--log-csv" />
+            <arg value="${phptools.phploc.csv}" />
+            <arg path="${phptools.phploc.srcdir}" />
+        </exec>
+        <echo message="PHPLOC complete" level="${phptools.phploc.echolevel}"/>
+    </target>
+
+    <!-- PHP CodeSniffer tests -->
+    <target name="phpcs.exists" unless="phptools.phpcs.run">
+        <available property="phptools.phpcs.run" file="${phptools.phpcs.phar}" />
+    </target>
+
+    <target name="phpcs-ci" depends="tools-init, phpcs.exists" if="${phptools.phpcs.run}" description="Find coding standard violations using PHP_CodeSniffer creating a log file for the continuous integration server">
+        <echo message="Running PHP CodeSniffer: ${phptools.phpcs.phar}" level="${phptools.phpcs.echolevel}"/>
+        <exec dir="${phptools.builddir}" executable="${phptools.phpcs.phar}" failonerror="${phptools.phpcs.failonerror}">
+            <arg value="--standard=${phptools.phpcs.standard}" />
+            <arg value="--report=${phptools.phpcs.report-format}" />
+            <arg value="--report-file=${phptools.phpcs.report}" />
+            <arg path="${phptools.phpcs.srcdir}" />
+        </exec>
+        <echo message="PHP CodeSniffer complete, logged to ${phptools.phpcs.report}" level="${phptools.phpcs.echolevel}"/>
+    </target>
+
+    <target name="phpcs" depends="tools-init, phpcs.exists" description="Find coding standard violations using PHP_CodeSniffer">
+        <exec dir="${phptools.builddir}" executable="${phptools.phpcs.phar}">
+            <arg value="--standard=${phptools.phpcs.standard}" />
+            <arg path="${phptools.phpcs.srcdir}" />
+        </exec>
+    </target>
+
+    <!-- PHP Mess Detector -->
+    <target name="phpmd.exists" unless="phptools.phpmd.run">
+        <available property="phptools.phpmd.run" file="${phptools.phpmd.phar}"/>
+        <available property="phptools.phpdox.config.nocopy" file="${phptools.phpmd.config}"/>
+    </target>
+
+    <target name="phpmd.copy" if="phptools.phpdox.run" unless="phptools.phpdox.config.nocopy">
+        <echo message="No existing phpmd config found, copying ${phptools.phpmd.dist} to ${phptools.phpmd.config}" level="verbose" />
+        <copy file="${phptools.phpmd.dist}" tofile="${phptools.phpmd.config}" overwrite="false" filtering="true">
+            <filterset filtersfile="${phptools.properties.filter}"/>
+        </copy>
+    </target>
+
+    <target name="phpmd-ci" depends="tools-init, phpmd.exists, phpmd.copy" if="${phptools.phpmd.run}" description="Perform project mess detection using PHPMD">
+        <echo message="Running PHP Mess Detector" level="${phptools.phpmd.echolevel}"/>
+        <copy file="${phptools.phpmd.dist}" tofile="${phptools.phpmd.config}" overwrite="false" filtering="true">
+            <filterset filtersfile="${phptools.properties.filter}"/>
+        </copy>
+        <exec dir="${phptools.builddir}" executable="${phptools.phpmd.phar}" failonerror="${phptools.phpmd.failonerror}">
+            <arg path="${phptools.phpmd.srcdir}" />
+            <arg value="${phptools.phpmd.format}" />
+            <arg value="${phptools.phpmd.config}" />
+            <arg value="--reportfile" />
+            <arg value="${phptools.phpmd.reportfile}" />
+        </exec>
+        <echo message="Mess Detection complete, logged to ${phptools.phpmd.reportfile}" level="${phptools.phpmd.echolevel}"/>
+    </target>
+
+    <target name="phpmd" depends="tools-init, phpmd.exists, phpmd.copy" if="${phptools.phpmd.run}" description="Perform project mess detection using PHPMD">
+        <echo message="Running PHP Mess Detector" level="${phptools.phpmd.echolevel}"/>
+        <copy file="${phptools.phpmd.dist}" tofile="${phptools.phpmd.config}" overwrite="false" filtering="true">
+            <filterset filtersfile="${phptools.properties.filter}"/>
+        </copy>
+        <exec dir="${phptools.builddir}" executable="${phptools.phpmd.phar}" failonerror="${phptools.phpmd.failonerror}">
+            <arg path="${phptools.phpmd.srcdir}" />
+            <arg value="text" />
+            <arg value="${phptools.phpmd.config}" />
+        </exec>
+        <echo message="Mess Detection complete, logged to ${phptools.phpmd.reportfile}" level="${phptools.phpmd.echolevel}"/>
+    </target>
+</project>

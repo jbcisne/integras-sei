@@ -1,0 +1,6 @@
+/.scannerwork
+/.buildpath
+/.project
+/.idea
+/vendor
+composer.lock

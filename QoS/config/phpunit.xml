@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+      bootstrap="../test/PHPUnitBootstrap.php"
+      colors="true"
+      verbose="true"
+      cacheTokens="true"
+      syntaxCheck="true"
+      backupGlobals="false"
+      stopOnFailure="false"
+      stopOnSkipped="false"
+      stopOnIncomplete="false"
+      forceCoversAnnotation="false"
+      backupStaticAttributes="false"
+      convertErrorsToExceptions="true"
+      convertNoticesToExceptions="true"
+      convertWarningsToExceptions="true"
+      mapTestClassNameToCoveredClassName="false">
+
+    <testsuites>
+        <testsuite name="library">
+            <directory>../test/library</directory>
+        </testsuite>
+    </testsuites>
+
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory>../../library/</directory>
+            <exclude>
+                <directory suffix="Interface.php">../../library</directory>
+            </exclude>
+        </whitelist>
+    </filter>
+
+    <logging>
+        <log type="coverage-clover" target="../output/logs/clover.xml"/>
+        <log type="coverage-html"   target="../output/coverage" title="QoS Core" charset="UTF-8" yui="true" highlight="true"/>
+        <log type="junit" target="../output/logs/junit.xml" logIncompleteSkipped="false"/>
+    </logging>
+</phpunit>
