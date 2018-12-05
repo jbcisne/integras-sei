@@ -19,7 +19,7 @@ class IntegrasServicesConnectorException extends IntegrasException
 
         throw new self(
             $msg,
-            static::STR_ERR_MSG_CONNECTOR_FAULT['code'],
+            static::$STR_ERR_MSG_CONNECTOR_FAULT['code'],
             $e
         );
     }
