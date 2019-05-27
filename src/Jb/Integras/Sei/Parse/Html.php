@@ -3,13 +3,13 @@
 namespace Jb\Integras\Sei\Parse;
 
 use Jb\Integras\Exception\IntegrasException;
-use simplehtmldom_1_5\simple_html_dom_node;
-use Sunra\PhpSimple\HtmlDomParser;
+use KubAT\PhpSimple\HtmlDomParser;
+use simple_html_dom\simple_html_dom;
 
 class Html
 {
     /**
-     * @var simple_html_dom_node
+     * @var simple_html_dom
      */
     protected $dom;
 
