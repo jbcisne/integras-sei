@@ -4,10 +4,10 @@
  */
 return array(
     /* identificador do sistema que fará acesso ao SEI */
-    'system_external' => 'engesoftware',
+    'system_external' => 'name',
 
     /* agrupador de serviços disponíveis para o sistema informado em 'external_external' */
-    'system_grouper' => 'engesoftware',
+    'system_grouper' => 'name',
 
     /*
      * devido ao fato que cada versão do sei pode ser conectado via banco ou webservice,
@@ -67,12 +67,12 @@ return array(
             ),
         ),
         '3.0.0' => array(
-            'url_base' => 'http://10.15.0.58:2080/sei',
+            'url_base' => 'http://10.221.1.208/sei',
             'connect' => array(
                 /* configuracao de acesso ao webservice do SEI */
                 'webservice' => array(
-                    'wsdl' => 'http://10.15.0.58:2080/sei/controlador_ws.php?servico=sei',
-                    'endpoint' => 'http://10.15.0.58:2080/sei/ws/SeiWS.php',
+                    'wsdl' => 'http://10.221.1.208/sei/controlador_ws.php?servico=sei',
+                    'endpoint' => 'http://10.221.1.208/sei/ws/SeiWS.php',
                     'options' => array(
                         'encoding' => 'ISO-8859-1',
                         'soap_version' => SOAP_1_1,
