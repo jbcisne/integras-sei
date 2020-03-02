@@ -68,6 +68,7 @@ return array(
         ),
         '3.0.0' => array(
             'url_base' => 'http://10.221.1.208/sei',
+            'curl_ssl_verify' => true,
             'connect' => array(
                 /* configuracao de acesso ao webservice do SEI */
                 'webservice' => array(
