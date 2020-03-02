@@ -11,4 +11,9 @@ use Jb\Integras\Sei\Parse\Html;
  * @version 0.0.1
  */
 class ParseHtml extends Html
-{}
+{
+    public function __construct($ssl_verify = true)
+    {
+        $this->ssl_verify = $ssl_verify;
+    }
+}

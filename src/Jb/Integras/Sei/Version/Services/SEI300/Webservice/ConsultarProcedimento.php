@@ -155,7 +155,7 @@ class ConsultarProcedimento extends IntegrasSEI300 implements IntegrasServiceInt
 
     private function appendData(&$objData)
     {
-        $parse = new ParseHtml();
+        $parse = new ParseHtml($this->config->get('curl_ssl_verify'));
         $parse->loadFromUrl($objData->LinkAcesso);
 
         $objData->Documentos = $parse->documentos($this->config->get('url_base'));

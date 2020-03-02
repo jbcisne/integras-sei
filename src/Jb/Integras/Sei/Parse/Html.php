@@ -13,6 +13,11 @@ class Html
      */
     protected $dom;
 
+    /**
+     * @var bool
+     */
+    protected $ssl_verify = true;
+
     public function loadFromUrl($url)
     {
         $this->dom = HtmlDomParser::str_get_html($this->getHtmlContent($url));
@@ -110,6 +115,11 @@ class Html
 
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+
+        if (!$this->ssl_verify) {
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        }
 
         $content = curl_exec($ch);
         if ($content === false) {
