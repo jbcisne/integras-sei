@@ -1,7 +1,7 @@
 # Integrador com SEI
 
 
-Version 0.2.0 - Inclusão de configuração para ignorar a checagem de SSL durante o uso do CURL
+Version 0.2.0 - Inclusão de configuração para ignorar a checagem de SSL durante o uso do CURL com a versão 3.0.0 do SEI
 
 Install
 -------
