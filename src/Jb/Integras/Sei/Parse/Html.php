@@ -82,7 +82,6 @@ class Html
         $historicos = array();
         /** @var simple_html_dom_node $iterator */
         foreach ($tableHist as $iterator) {
-            echo PHP_EOL;
             /** @var simple_html_dom_node $tr */
             foreach ($iterator->find('tr') as $key => $tr) {
                 if ($key > 0) {
